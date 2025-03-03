@@ -59,9 +59,7 @@ app.use("/v1", router);
 app.post("/evaluate", upload.fields([{ name: "audio", maxCount: 1 }]), async (req, res) => {
   try {
     const audioPath = req.files["audio"][0].path;
-    console.log("audioPath => ", audioPath);
     const text = req.body.text;
-    console.log("text => ", text);
 
     const wavPath = path.join(path.dirname(audioPath), "converted.wav");
 

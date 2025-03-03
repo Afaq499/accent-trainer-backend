@@ -18,9 +18,9 @@ const SignIn = async ({
   }
   const { _id, fullName, password, status, isAdmin } = user;
 
-  if (status === 'PENDING') {
-    throw throwError('Please first verify you email.', 400);
-  }
+  // if (status === 'PENDING') {
+  //   throw throwError('Please first verify you email.', 400);
+  // }
 
   const isMatch = await bcrypt.compare(pass, password);
   if (!isMatch) {
