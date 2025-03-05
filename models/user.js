@@ -37,6 +37,13 @@ schema.methods.validatePassword = function (candidatePassword) {
   return bcrypt.compareSync(candidatePassword, this.password);
 };
 
+schema.pre('findOneAndDelete', async function (next) {
+  const userId = this.getQuery()._id;
+  await mongoose.model('voiceProgress').deleteMany({ userId });
+  next();
+});
+
+
 const Users = mongoose.model('users', schema, 'users');
 
 export default Users;
