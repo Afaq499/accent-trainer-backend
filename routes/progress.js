@@ -43,16 +43,15 @@ router.post(
   upload.fields([{ name: "audio", maxCount: 1 }]),
   async (req, res) => {
     const audioPath = req.files["audio"][0].path;
-    const text = req.body.text;
-
+    const { text, selectedAccent } = req.body;
     const wavPath = path.join(path.dirname(audioPath), "converted.wav");
     try {
       await convertToWav(audioPath, wavPath);
       const accuracyScore = await assessPronunciation(wavPath, text);
-
       if (accuracyScore) {
         const resp = await VoiceProgress.create({
           ...accuracyScore,
+          accent: selectedAccent,
           userId: req.user._id,
         });
       }
@@ -75,48 +74,51 @@ router.post(
 
 router.get("/accent-progress", async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, accent } = req.query;
+    const { _id: userId } = req.user;
 
-    const userId = req.user._id;
     if (!userId || !startDate || !endDate) {
-      return res.status(400).json({
-        error: "Missing required parameters: userId, startDate, endDate",
+      return res.status(400).json({ 
+        error: 'Missing required parameters: userId, startDate, endDate' 
       });
     }
 
-    const start = moment(startDate).startOf("day").toDate();
-    const end = moment(endDate).endOf("day").toDate();
+    const start = moment(startDate).startOf('day').toDate();
+    const end = moment(endDate).endOf('day').toDate();
+
+    const matchCriteria = {
+      userId: new mongoose.Types.ObjectId(userId),
+      createdAt: { $gte: start, $lte: end }
+    };
+
+    if (accent) {
+      matchCriteria.accent = accent;
+    }
 
     const progressMetrics = await VoiceProgress.aggregate([
       {
-        $match: {
-          userId: mongoose.Types.ObjectId(userId),
-          createdAt: { $gte: start, $lte: end },
-        },
+        $match: matchCriteria
       },
       {
         $group: {
           _id: null,
-          averageAccuracyScore: { $avg: "$accuracyScore" },
-          averageFluencyScore: { $avg: "$fluencyScore" },
-          averageCompletenessScore: { $avg: "$completenessScore" },
-          averagePronunciationScore: { $avg: "$pronunciationScore" },
-          totalSessions: { $sum: 1 },
-        },
-      },
+          averageAccuracyScore: { $avg: '$accuracyScore' },
+          averageFluencyScore: { $avg: '$fluencyScore' },
+          averageCompletenessScore: { $avg: '$completenessScore' },
+          averagePronunciationScore: { $avg: '$pronunciationScore' },
+          totalSessions: { $sum: 1 }
+        }
+      }
     ]);
 
-    // If no data found
     if (progressMetrics.length === 0) {
-      return res.status(404).json({
-        message: "No progress data found for the given date range",
-      });
+      return res.json({});
     }
 
     res.json(progressMetrics[0]);
   } catch (error) {
-    console.error("Error fetching accent progress:", error);
-    res.status(500).json({ error: "Internal server error" });
+    console.error('Error fetching accent progress:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

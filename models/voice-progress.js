@@ -12,6 +12,7 @@ const voiceProgressSchema = new Schema(
     fluencyScore: { type: Number, required: true },
     completenessScore: { type: Number, required: true },
     pronunciationScore: { type: Number, required: true },
+    accent: { type: String, required: true },
   },
   { timestamps: true }
 );
