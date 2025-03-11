@@ -9,6 +9,7 @@ const options = {
   useUnifiedTopology: true
 };
 
+mongoose.set("strictQuery", false);
 (function SetupDatabase() {
   const { readyState } = connection;
 
