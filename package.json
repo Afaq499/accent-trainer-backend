@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "lint": "eslint",
-    "start": "nodemon --exec babel-node index.js",
+    "start": "node init && nodemon --exec babel-node index.js",
     "prod:setup": "mup setup --config=./deploy/mup.js",
     "prod:deploy": "npm run prod:build && mup deploy --config=./deploy/mup.js",
     "prod:reconfig": "mup reconfig --config=./deploy/mup.js",
